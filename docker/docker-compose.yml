@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  postgres:
+    # Official Postgres image from DockerHub 
+    image: "postgres:13"
+    ports:
+      - 5432:5432
+    
+    # The `env_file` tag allows us to declare an environment file
+    # Real password should never be saved in repository
+    env_file:
+      - postgresql/db.env # configure postgres
+
+    # make data and config persistent also easy to snapshot
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+      - ./postgresql/conf:/etc/postgresql
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: always
+  horizon:
+    # Official immage ( no latest tag)
+    image: "opennms/horizon:28.1.1"
+    depends_on:
+      - postgres
+    env_file:
+      - postgresql/db.env
+      - horizon/horizon.env
+    volumes:
+      - ./horizon/conf.overlay:/opt/opennms-etc-overlay
+      - ./horizon/conf.etc:/opt/opennms/etc
+      - ./horizon/data:/opennms-data
+    command: ["-s"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-I", "http://localhost:8980/opennms/login.jsp"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+    ports:
+      - "8980:8980"
+      - "8101:8101"
+      - "61616:61616"
+      - "162:162/udp"
+    restart: always
