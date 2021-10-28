@@ -14,3 +14,6 @@ Install Docker
 
 TODO
 - Fix log errors - horizon_1  postgres_1  | 2021-10-28 21:45:41.967 GMT [76] FATAL:  role "postgres" does not exist
+
+Issues
+- opennms seem to need datadir and etc writable for its user. If not present and writable will exit with 127 code  
