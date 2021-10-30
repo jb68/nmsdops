@@ -1,0 +1,55 @@
+---
+# Create workspace by cloning docker repository and start docker-compose
+# Can be improved by using docker-compose module
+- hosts: docker
+  tasks:
+    - name: Clone opennms docker automation repo
+      git:
+            repo: https://github.com/jb68/nmsdops.git
+            version: master
+            dest: "{{ ws_path }}/nmsdops1"
+            clone: yes
+            update: yes
+    #  notify:
+    #  - Restart cluster
+    - name: Register real path for repo to be used with root
+      command: pwd chdir="{{ ws_path }}//nmsdops1"
+      register: repo_path
+    - debug:
+        var: repo_path.stdout
+    - name: Set folder permissions to 777 or use opennms owner (group is optional) 
+      file: path="{{ repo_path.stdout }}/docker/horizon/{{ item }}" owner=10001
+      with_items:
+        - conf.etc
+        - conf.overlay
+        - data
+      become: yes    
+
+    - name: Start containers cluster
+      shell:
+        cmd: "docker-compose -f docker-compose.yml up -d"
+        chdir: "{{ repo_path.stdout }}/docker"
+    - name: FirewallD rules
+      firewalld:
+        permanent: yes
+        immediate: yes
+        port: "{{ item }}"
+        state: enabled
+      with_items:
+       - 8980/tcp
+ 
+
+  handlers:
+    - name: Restart postgres
+      shell:
+        cmd: "docker-compose -f docker-compose.yml restart postgres"
+        chdir: "{{ repo_path.stdout }}/docker"
+      listen: "restart cluster"
+
+    - name: Restart horizon
+      shell:
+        cmd: "docker-compose -f docker-compose.yml restart horizon"
+        chdir: "{{ repo_path.stdout }}/docker"
+      listen: "restart cluster"
+
+
