@@ -22,7 +22,7 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
-    restart: always
+    restart: unless-stopped
   horizon:
     # Official immage ( no latest tag)
     image: "opennms/horizon:28.1.1"
@@ -46,4 +46,4 @@ services:
       - "8101:8101"
       - "61616:61616"
       - "162:162/udp"
-    restart: always
+    restart: unless-stopped
