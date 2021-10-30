@@ -1,0 +1,18 @@
+[dev]
+localhost ansible_host=localhost ansible_user=jb ansible_connection=ssh ws_path=~/Projects
+
+[test]
+test1 ansible_host=[test.host] ansible_user=[test.user] ansible_connection=ssh ws_path=~/Projects
+
+[prod]
+opennms1 ansible_host=[prod.host] ansible_user=[prod.user] ansible_connection=ssh ws_path=~/work
+
+[docker]
+localhost
+test1
+opennms1
+
+[postgres]
+localhost
+test1
+opennms1
