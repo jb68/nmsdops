@@ -1,19 +1,30 @@
-Prerequisets
-- make sure your ssh key is present on target inventory
-`ssh-copy-id julian@40.90.252.221`
+**Automated install for OpenNMS Horizon**
 
-For automated installs is reccomended to have sudo with no password
+with Ansible Docker and git
+This implementation will Ansible to login, install docker, clone a repo that contains the required docker structure and run docker-compose
+
+I preffered this way with docker-compose instead of a 100% Ansible implementation because it will easy allow independent development and testing as well as a future splint in 2 independent repositories.
+
+Prerequisites
+- make sure your ssh key is present on target inventory
+`ssh-copy-id user@host`
+
+For automated installs is recommended to have sudo with no password
 https://linuxhandbook.com/sudo-without-password/
 An user that is part of docker group can easy become root however there is also an option to have the password in a vault
-For this assigment the password needs to be entered?
 
+Install Docker:
 
-Install Docker
-- ansible-playbook -l opennms1 -i hosts docker.yml  --ask-become-pass
+`ansible-playbook -l opennms1 -i hosts docker.yml`
 
+Create structure, and start Postgress and Horizon
+
+`ansible-playbook -l opennms1 -i hosts horizon.yml`
 
 TODO
-- Fix log errors - horizon_1  postgres_1  | 2021-10-28 21:45:41.967 GMT [76] FATAL:  role "postgres" does not exist
+- create an env deployment script that will take file.env.sample fileas and deploy them as file.env. In the process random a random DB password should be generated.
+- make DB and Horizon independent. This can be easy achived as is with 2 tasks using docker-compose commands.
+- Fix log errors - horizon_1 postgres_1 | 2021-10-28 21:45:41.967 GMT [76] FATAL: role "postgres" does not exist
 
 Issues
-- opennms seem to need datadir and etc writable for its user. If not present and writable will exit with 127 code  
+- opennms horizon seem to need datadir and etc writable for its user (10001). If not present and writable will exit with 127 code
