@@ -1,3 +1,5 @@
 # ignore env and data files
 **/*.env
 **/data
+ansible/hosts
+
