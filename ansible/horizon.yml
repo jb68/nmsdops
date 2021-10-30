@@ -7,49 +7,55 @@
       git:
             repo: https://github.com/jb68/nmsdops.git
             version: master
-            dest: "{{ ws_path }}/nmsdops1"
+            dest: "{{ ws_path }}/nmsdops"
             clone: yes
             update: yes
-    #  notify:
-    #  - Restart cluster
+      notify:
+              - docker compose down
+              - docker compose up
+
     - name: Register real path for repo to be used with root
-      command: pwd chdir="{{ ws_path }}//nmsdops1"
+      command: pwd chdir="{{ ws_path }}//nmsdops"
       register: repo_path
     - debug:
         var: repo_path.stdout
-    - name: Set folder permissions to 777 or use opennms owner (group is optional) 
+
+      # horizon docker user needs write permission on folders (chmod 777 or chown 10001)
+    - name: Set folder owner to 10001
       file: path="{{ repo_path.stdout }}/docker/horizon/{{ item }}" owner=10001
       with_items:
         - conf.etc
         - conf.overlay
         - data
-      become: yes    
+      become: yes
 
-    - name: Start containers cluster
+    # - name: FirewallD rules
+    #   firewalld:
+    #     permanent: yes
+    #     immediate: yes
+    #     port: "{{ item }}"
+    #     state: enabled
+    #   with_items:
+    #    - 8980/tcp
+
+  handlers:
+    - name: docker compose down
+      shell:
+        cmd: "docker-compose -f docker-compose.yml down"
+        chdir: "{{ repo_path.stdout }}/docker"
+    - name: docker compose up
       shell:
         cmd: "docker-compose -f docker-compose.yml up -d"
         chdir: "{{ repo_path.stdout }}/docker"
-    - name: FirewallD rules
-      firewalld:
-        permanent: yes
-        immediate: yes
-        port: "{{ item }}"
-        state: enabled
-      with_items:
-       - 8980/tcp
- 
 
-  handlers:
-    - name: Restart postgres
+    - name: restart postgres
       shell:
-        cmd: "docker-compose -f docker-compose.yml restart postgres"
+        cmd: "docker-compose -f docker-compose.yml restart postgres -d"
         chdir: "{{ repo_path.stdout }}/docker"
-      listen: "restart cluster"
+      listen: restart cluster
 
-    - name: Restart horizon
+    - name: restart horizon
       shell:
-        cmd: "docker-compose -f docker-compose.yml restart horizon"
+        cmd: "docker-compose -f docker-compose.yml restart horizon -d"
         chdir: "{{ repo_path.stdout }}/docker"
-      listen: "restart cluster"
-
-
+      listen: restart cluster
