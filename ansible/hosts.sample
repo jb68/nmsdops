@@ -16,3 +16,8 @@ opennms1
 localhost
 test1
 opennms1
+
+[horizon]
+localhost
+test1
+opennms1
